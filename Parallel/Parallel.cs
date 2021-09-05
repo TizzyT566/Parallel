@@ -27,14 +27,22 @@ namespace System.Threading
                     try
                     {
                         int crntIdx;
-                        while ((crntIdx = Increment(ref idx)) < actions.Length) actions[crntIdx].Invoke();
+                        while ((crntIdx = Increment(ref idx)) < actions.Length)
+                            actions[crntIdx].Invoke();
                     }
-                    finally { Increment(ref finishedThreads); }
+                    finally
+                    {
+                        _ = Increment(ref finishedThreads);
+                    }
                 }))
+                {
                     threads++;
+                }
             }
-            if (useSpinWait) SpinUntil(() => finishedThreads == threads);
-            else while (finishedThreads != threads) ;
+            if (useSpinWait)
+                SpinUntil(() => finishedThreads == threads);
+            else
+                while (finishedThreads != threads) ;
         }
 
         /// <summary>
@@ -54,14 +62,22 @@ namespace System.Threading
                     try
                     {
                         int crntIteration;
-                        while ((crntIteration = Increment(ref from)) <= toExclusive) body.Invoke(crntIteration - 1);
+                        while ((crntIteration = Increment(ref from)) <= toExclusive)
+                            body.Invoke(crntIteration - 1);
                     }
-                    finally { Increment(ref finishedThreads); }
+                    finally
+                    {
+                        _ = Increment(ref finishedThreads);
+                    }
                 }))
+                {
                     threads++;
+                }
             }
-            if (useSpinWait) SpinUntil(() => finishedThreads == threads);
-            else while (finishedThreads != threads) ;
+            if (useSpinWait)
+                SpinUntil(() => finishedThreads == threads);
+            else
+                while (finishedThreads != threads) ;
         }
 
         /// <summary>
@@ -88,22 +104,29 @@ namespace System.Threading
                                 if (enumerator.MoveNext())
                                 {
                                     T value = enumerator.Current;
-                                    Exchange(ref _lock, 0);
+                                    _ = Exchange(ref _lock, 0);
                                     body.Invoke(value);
                                 }
                                 else
                                 {
-                                    Exchange(ref _lock, 0);
+                                    _ = Exchange(ref _lock, 0);
                                     break;
                                 }
                             }
                         }
-                        finally { Increment(ref finishedThreads); }
+                        finally
+                        {
+                            _ = Increment(ref finishedThreads);
+                        }
                     }))
+                    {
                         threads++;
+                    }
                 }
-                if (useSpinWait) SpinUntil(() => finishedThreads == threads);
-                else while (finishedThreads != threads) ;
+                if (useSpinWait)
+                    SpinUntil(() => finishedThreads == threads);
+                else
+                    while (finishedThreads != threads) ;
             }
         }
     }
