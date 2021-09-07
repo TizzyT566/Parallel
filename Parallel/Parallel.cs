@@ -89,10 +89,10 @@ namespace System.Threading
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         public static void ForEach<T>(IEnumerable<T> source, Action<T> body, bool useSpinWait = false)
         {
-            int threads = 0, finishedThreads = 0, min = ProcessorCount, _lock = 0;
+            int threads = 0, finishedThreads = 0, _lock = 0;
             using (IEnumerator<T> enumerator = source.GetEnumerator())
             {
-                for (int i = 0; i < min; i++)
+                for (int i = 0; i < ProcessorCount; i++)
                 {
                     if (QueueUserWorkItem(_ =>
                     {
