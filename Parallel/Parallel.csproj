@@ -6,6 +6,7 @@
     <DebugType>none</DebugType>
     <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
     <GenerateDocumentationFile>False</GenerateDocumentationFile>
+    <LangVersion>9</LangVersion>
   </PropertyGroup>
 
 </Project>

@@ -55,8 +55,8 @@ namespace System.Threading
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         public static void For(int fromInclusive, int toExclusive, Action<int> body, int increment = 1, bool useSpinWait = false)
         {
-            int threads = 0, finishedThreads = 0, min = Min(ProcessorCount, toExclusive - fromInclusive);
-            for (int i = 0; i < min; i++)
+            int threads = 0, finishedThreads = 0, spawn = 1;
+            for (int i = 0; i < ProcessorCount && spawn == 1; i++)
             {
                 if (QueueUserWorkItem(_ =>
                 {
@@ -69,6 +69,130 @@ namespace System.Threading
                     finally
                     {
                         _ = Increment(ref finishedThreads);
+                        _ = Exchange(ref spawn, 0);
+                    }
+                }))
+                {
+                    threads++;
+                }
+            }
+            if (useSpinWait)
+                SpinUntil(() => finishedThreads == threads);
+            else
+                while (finishedThreads != threads) ;
+        }
+
+        /// <summary>
+        /// A lightweight implementation parallel for loop not based on tasks.
+        /// </summary>
+        /// <param name="fromInclusive">The starting index.</param>
+        /// <param name="toExclusive">The exclusive ending index.</param>
+        /// <param name="body">The action to execute for each iteration.</param>
+        /// <param name="increment">The increment for each iteration.</param>
+        /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
+        public static void For(long fromInclusive, long toExclusive, Action<long> body, long increment = 1, bool useSpinWait = false)
+        {
+            int threads = 0, finishedThreads = 0, spawn = 1;
+            for (int i = 0; i < ProcessorCount && spawn == 1; i++)
+            {
+                if (QueueUserWorkItem(_ =>
+                {
+                    try
+                    {
+                        long crntIteration;
+                        while ((crntIteration = Add(ref fromInclusive, increment)) <= toExclusive)
+                            body.Invoke(crntIteration - increment);
+                    }
+                    finally
+                    {
+                        _ = Increment(ref finishedThreads);
+                        _ = Exchange(ref spawn, 0);
+                    }
+                }))
+                {
+                    threads++;
+                }
+            }
+            if (useSpinWait)
+                SpinUntil(() => finishedThreads == threads);
+            else
+                while (finishedThreads != threads) ;
+        }
+
+        /// <summary>
+        /// A lightweight implementation parallel for loop not based on tasks.
+        /// </summary>
+        /// <param name="fromInclusive">The starting index.</param>
+        /// <param name="toExclusive">The exclusive ending index.</param>
+        /// <param name="body">The action to execute for each iteration.</param>
+        /// <param name="increment">The increment for each iteration.</param>
+        /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
+        public static void For(uint fromInclusive, uint toExclusive, Action<uint> body, int increment = 1, bool useSpinWait = false)
+        {
+            int threads = 0, finishedThreads = 0, spawn = 1;
+
+            static int ToIntShift(uint num) => num > 2147483647 ? (int)(num - 2147483648) : -(int)(2147483648 - num);
+            static uint ToUintShift(int num) => num > -1 ? (uint)num + 2147483648 : 2147483648 - (uint)-num;
+
+            int from = ToIntShift(fromInclusive), to = ToIntShift(toExclusive);
+
+            for (int i = 0; i < ProcessorCount && spawn == 1; i++)
+            {
+                if (QueueUserWorkItem(_ =>
+                {
+                    try
+                    {
+                        int crntIteration;
+                        while ((crntIteration = Add(ref from, increment)) <= to)
+                            body.Invoke(ToUintShift(crntIteration - increment));
+                    }
+                    finally
+                    {
+                        _ = Increment(ref finishedThreads);
+                        _ = Exchange(ref spawn, 0);
+                    }
+                }))
+                {
+                    threads++;
+                }
+            }
+            if (useSpinWait)
+                SpinUntil(() => finishedThreads == threads);
+            else
+                while (finishedThreads != threads) ;
+        }
+
+        /// <summary>
+        /// A lightweight implementation parallel for loop not based on tasks.
+        /// </summary>
+        /// <param name="fromInclusive">The starting index.</param>
+        /// <param name="toExclusive">The exclusive ending index.</param>
+        /// <param name="body">The action to execute for each iteration.</param>
+        /// <param name="increment">The increment for each iteration.</param>
+        /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
+        public static void For(ulong fromInclusive, ulong toExclusive, Action<ulong> body, long increment = 1, bool useSpinWait = false)
+        {
+            int threads = 0, finishedThreads = 0, spawn = 1;
+
+            static long ToLongShift(ulong num) => num > 9223372036854775807 ? (int)(num - 9223372036854775808) : -(long)(9223372036854775808 - num);
+            static ulong ToULongShift(long num) => num > -1 ? (uint)num + 9223372036854775808 : 9223372036854775808 - (uint)-num;
+
+            long from = ToLongShift(fromInclusive), to = ToLongShift(toExclusive);
+
+            for (int i = 0; i < ProcessorCount && spawn == 1; i++)
+            {
+                if (QueueUserWorkItem(_ =>
+                {
+                    try
+                    {
+                        long crntIteration;
+                        while ((crntIteration = Add(ref from, increment)) <= to)
+                            body.Invoke(ToULongShift(crntIteration - increment));
+                    }
+                    finally
+                    {
+                        _ = Increment(ref finishedThreads);
+                        _ = Exchange(ref spawn, 0);
                     }
                 }))
                 {
