@@ -68,8 +68,8 @@ namespace System.Threading
                     }
                     finally
                     {
+                        spawn = 0;
                         _ = Increment(ref finishedThreads);
-                        _ = Exchange(ref spawn, 0);
                     }
                 }))
                 {
@@ -105,8 +105,8 @@ namespace System.Threading
                     }
                     finally
                     {
+                        spawn = 0;
                         _ = Increment(ref finishedThreads);
-                        _ = Exchange(ref spawn, 0);
                     }
                 }))
                 {
@@ -148,8 +148,8 @@ namespace System.Threading
                     }
                     finally
                     {
+                        spawn = 0;
                         _ = Increment(ref finishedThreads);
-                        _ = Exchange(ref spawn, 0);
                     }
                 }))
                 {
@@ -191,8 +191,8 @@ namespace System.Threading
                     }
                     finally
                     {
+                        spawn = 0;
                         _ = Increment(ref finishedThreads);
-                        _ = Exchange(ref spawn, 0);
                     }
                 }))
                 {
