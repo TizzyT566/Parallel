@@ -48,13 +48,14 @@ namespace System.Threading
         /// <summary>
         /// A lightweight implementation parallel for loop not based on tasks.
         /// </summary>
-        /// <param name="from">The starting index.</param>
+        /// <param name="fromInclusive">The starting index.</param>
         /// <param name="toExclusive">The exclusive ending index.</param>
         /// <param name="body">The action to execute for each iteration.</param>
+        /// <param name="increment">The increment for each iteration.</param>
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
-        public static void For(int from, int toExclusive, Action<int> body, bool useSpinWait = false)
+        public static void For(int fromInclusive, int toExclusive, Action<int> body, int increment = 1, bool useSpinWait = false)
         {
-            int threads = 0, finishedThreads = 0, min = Min(ProcessorCount, toExclusive - from);
+            int threads = 0, finishedThreads = 0, min = Min(ProcessorCount, toExclusive - fromInclusive);
             for (int i = 0; i < min; i++)
             {
                 if (QueueUserWorkItem(_ =>
@@ -62,8 +63,8 @@ namespace System.Threading
                     try
                     {
                         int crntIteration;
-                        while ((crntIteration = Increment(ref from)) <= toExclusive)
-                            body.Invoke(crntIteration - 1);
+                        while ((crntIteration = Add(ref fromInclusive, increment)) <= toExclusive)
+                            body.Invoke(crntIteration - increment);
                     }
                     finally
                     {
