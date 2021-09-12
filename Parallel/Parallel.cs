@@ -19,7 +19,7 @@ namespace System.Threading
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         public static void Invoke(Action[] actions, bool useSpinWait = false)
         {
-            int threads = 0, finishedThreads = 0, min = Min(ProcessorCount, actions.Length), idx = -1;
+            int threads = 0, finishedThreads = 0, min = Min(ProcessorCount, actions?.Length ?? 0), idx = -1;
             for (int i = 0; i < min; i++)
             {
                 if (QueueUserWorkItem(_ =>
@@ -28,7 +28,7 @@ namespace System.Threading
                     {
                         int crntIdx;
                         while ((crntIdx = Increment(ref idx)) < actions.Length)
-                            actions[crntIdx].Invoke();
+                            actions[crntIdx]?.Invoke();
                     }
                     finally
                     {
@@ -55,9 +55,16 @@ namespace System.Threading
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         public static void For(int fromInclusive, int toExclusive, Action<int> body, int increment = 1, bool useSpinWait = false)
         {
+            if (toExclusive <= fromInclusive)
+                throw new ArgumentOutOfRangeException("toExclusive must be greater than fromInclusive.");
+            if (increment < 1)
+                throw new ArgumentOutOfRangeException(nameof(increment), $"{nameof(increment)} must be greater than 0.");
+
             int threads = 0, finishedThreads = 0;
+            int lowerBound = fromInclusive;
             bool spawn = true;
 
+            fromInclusive -= increment;
             for (int i = 0; spawn && i < ProcessorCount; i++)
             {
                 if (QueueUserWorkItem(_ =>
@@ -65,8 +72,8 @@ namespace System.Threading
                     try
                     {
                         int crntIteration;
-                        while ((crntIteration = Add(ref fromInclusive, increment)) <= toExclusive)
-                            body.Invoke(crntIteration - increment);
+                        while ((crntIteration = Add(ref fromInclusive, increment)) < toExclusive && crntIteration >= lowerBound)
+                            body?.Invoke(crntIteration);
                     }
                     finally
                     {
@@ -95,9 +102,16 @@ namespace System.Threading
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         public static void For(long fromInclusive, long toExclusive, Action<long> body, long increment = 1, bool useSpinWait = false)
         {
+            if (toExclusive <= fromInclusive)
+                throw new ArgumentOutOfRangeException("toExclusive must be greater than fromInclusive.");
+            if (increment < 1)
+                throw new ArgumentOutOfRangeException(nameof(increment), $"{nameof(increment)} must be greater than 0.");
+
             int threads = 0, finishedThreads = 0;
+            long lowerBound = fromInclusive;
             bool spawn = true;
 
+            fromInclusive -= increment;
             for (int i = 0; spawn && i < ProcessorCount; i++)
             {
                 if (QueueUserWorkItem(_ =>
@@ -105,8 +119,8 @@ namespace System.Threading
                     try
                     {
                         long crntIteration;
-                        while ((crntIteration = Add(ref fromInclusive, increment)) <= toExclusive)
-                            body.Invoke(crntIteration - increment);
+                        while ((crntIteration = Add(ref fromInclusive, increment)) < toExclusive && crntIteration >= lowerBound)
+                            body?.Invoke(crntIteration);
                     }
                     finally
                     {
@@ -135,10 +149,16 @@ namespace System.Threading
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         public static void For(uint fromInclusive, uint toExclusive, Action<uint> body, int increment = 1, bool useSpinWait = false)
         {
+            if (toExclusive <= fromInclusive)
+                throw new ArgumentOutOfRangeException("toExclusive must be greater than fromInclusive.");
+            if (increment < 1)
+                throw new ArgumentOutOfRangeException(nameof(increment), $"{nameof(increment)} must be greater than 0.");
+
             static int ToIntShift(uint num) => num > 2147483647 ? (int)(num - 2147483648) : -(int)(2147483648 - num);
             static uint ToUintShift(int num) => num > -1 ? (uint)num + 2147483648 : 2147483648 - (uint)-num;
 
-            int threads = 0, finishedThreads = 0, from = ToIntShift(fromInclusive), to = ToIntShift(toExclusive); ;
+            int lowerBound = ToIntShift(fromInclusive);
+            int threads = 0, finishedThreads = 0, from = lowerBound - increment, to = ToIntShift(toExclusive);
             bool spawn = true;
 
             for (int i = 0; spawn && i < ProcessorCount; i++)
@@ -148,8 +168,8 @@ namespace System.Threading
                     try
                     {
                         int crntIteration;
-                        while ((crntIteration = Add(ref from, increment)) <= to)
-                            body.Invoke(ToUintShift(crntIteration - increment));
+                        while ((crntIteration = Add(ref from, increment)) < to && crntIteration >= lowerBound)
+                            body?.Invoke(ToUintShift(crntIteration));
                     }
                     finally
                     {
@@ -178,11 +198,17 @@ namespace System.Threading
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         public static void For(ulong fromInclusive, ulong toExclusive, Action<ulong> body, long increment = 1, bool useSpinWait = false)
         {
-            static long ToLongShift(ulong num) => num > 9223372036854775807 ? (int)(num - 9223372036854775808) : -(long)(9223372036854775808 - num);
-            static ulong ToULongShift(long num) => num > -1 ? (uint)num + 9223372036854775808 : 9223372036854775808 - (uint)-num;
+            if (toExclusive <= fromInclusive)
+                throw new ArgumentOutOfRangeException("toExclusive must be greater than fromInclusive.");
+            if (increment < 1)
+                throw new ArgumentOutOfRangeException(nameof(increment), $"{nameof(increment)} must be greater than 0.");
+
+            static long ToLongShift(ulong num) => num > 9223372036854775807 ? (long)(num - 9223372036854775808) : -(long)(9223372036854775808 - num);
+            static ulong ToULongShift(long num) => num > -1 ? (ulong)num + 9223372036854775808 : 9223372036854775808 - (ulong)-num;
 
             int threads = 0, finishedThreads = 0;
-            long from = ToLongShift(fromInclusive), to = ToLongShift(toExclusive);
+            long lowerBound = ToLongShift(fromInclusive);
+            long from = lowerBound - increment, to = ToLongShift(toExclusive);
             bool spawn = true;
 
             for (int i = 0; spawn && i < ProcessorCount; i++)
@@ -192,8 +218,8 @@ namespace System.Threading
                     try
                     {
                         long crntIteration;
-                        while ((crntIteration = Add(ref from, increment)) <= to)
-                            body.Invoke(ToULongShift(crntIteration - increment));
+                        while ((crntIteration = Add(ref from, increment)) < to && crntIteration >= lowerBound)
+                            body?.Invoke(ToULongShift(crntIteration));
                     }
                     finally
                     {
@@ -238,7 +264,7 @@ namespace System.Threading
                             {
                                 T value = enumerator.Current;
                                 _ = Exchange(ref @lock, 0);
-                                body.Invoke(value);
+                                body?.Invoke(value);
                             }
                             else
                             {
