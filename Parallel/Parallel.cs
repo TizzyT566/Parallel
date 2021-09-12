@@ -59,6 +59,8 @@ namespace System.Threading
                 throw new ArgumentOutOfRangeException("toExclusive must be greater than fromInclusive.");
             if (increment < 1)
                 throw new ArgumentOutOfRangeException(nameof(increment), $"{nameof(increment)} must be greater than 0.");
+            if (body == null)
+                throw new ArgumentNullException(nameof(body));
 
             int threads = 0, finishedThreads = 0;
             int lowerBound = fromInclusive;
@@ -73,7 +75,7 @@ namespace System.Threading
                     {
                         int crntIteration;
                         while ((crntIteration = Add(ref fromInclusive, increment)) < toExclusive && crntIteration >= lowerBound)
-                            body?.Invoke(crntIteration);
+                            body.Invoke(crntIteration);
                     }
                     finally
                     {
@@ -106,6 +108,8 @@ namespace System.Threading
                 throw new ArgumentOutOfRangeException("toExclusive must be greater than fromInclusive.");
             if (increment < 1)
                 throw new ArgumentOutOfRangeException(nameof(increment), $"{nameof(increment)} must be greater than 0.");
+            if (body == null)
+                throw new ArgumentNullException(nameof(body));
 
             int threads = 0, finishedThreads = 0;
             long lowerBound = fromInclusive;
@@ -120,7 +124,7 @@ namespace System.Threading
                     {
                         long crntIteration;
                         while ((crntIteration = Add(ref fromInclusive, increment)) < toExclusive && crntIteration >= lowerBound)
-                            body?.Invoke(crntIteration);
+                            body.Invoke(crntIteration);
                     }
                     finally
                     {
@@ -153,6 +157,8 @@ namespace System.Threading
                 throw new ArgumentOutOfRangeException("toExclusive must be greater than fromInclusive.");
             if (increment < 1)
                 throw new ArgumentOutOfRangeException(nameof(increment), $"{nameof(increment)} must be greater than 0.");
+            if (body == null)
+                throw new ArgumentNullException(nameof(body));
 
             static int ToIntShift(uint num) => num > 2147483647 ? (int)(num - 2147483648) : -(int)(2147483648 - num);
             static uint ToUintShift(int num) => num > -1 ? (uint)num + 2147483648 : 2147483648 - (uint)-num;
@@ -169,7 +175,7 @@ namespace System.Threading
                     {
                         int crntIteration;
                         while ((crntIteration = Add(ref from, increment)) < to && crntIteration >= lowerBound)
-                            body?.Invoke(ToUintShift(crntIteration));
+                            body.Invoke(ToUintShift(crntIteration));
                     }
                     finally
                     {
@@ -202,6 +208,8 @@ namespace System.Threading
                 throw new ArgumentOutOfRangeException("toExclusive must be greater than fromInclusive.");
             if (increment < 1)
                 throw new ArgumentOutOfRangeException(nameof(increment), $"{nameof(increment)} must be greater than 0.");
+            if (body == null)
+                throw new ArgumentNullException(nameof(body));
 
             static long ToLongShift(ulong num) => num > 9223372036854775807 ? (long)(num - 9223372036854775808) : -(long)(9223372036854775808 - num);
             static ulong ToULongShift(long num) => num > -1 ? (ulong)num + 9223372036854775808 : 9223372036854775808 - (ulong)-num;
@@ -219,7 +227,7 @@ namespace System.Threading
                     {
                         long crntIteration;
                         while ((crntIteration = Add(ref from, increment)) < to && crntIteration >= lowerBound)
-                            body?.Invoke(ToULongShift(crntIteration));
+                            body.Invoke(ToULongShift(crntIteration));
                     }
                     finally
                     {
@@ -247,6 +255,9 @@ namespace System.Threading
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         public static void ForEach<T>(IEnumerable<T> source, Action<T> body, bool useSpinWait = false)
         {
+            if (body == null)
+                throw new ArgumentNullException(nameof(body));
+
             int threads = 0, finishedThreads = 0, @lock = 0;
             bool spawn = true;
 
@@ -264,7 +275,7 @@ namespace System.Threading
                             {
                                 T value = enumerator.Current;
                                 _ = Exchange(ref @lock, 0);
-                                body?.Invoke(value);
+                                body.Invoke(value);
                             }
                             else
                             {
