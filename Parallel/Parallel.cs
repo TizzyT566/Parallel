@@ -255,6 +255,8 @@ namespace System.Threading
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         public static void ForEach<T>(IEnumerable<T> source, Action<T> body, bool useSpinWait = false)
         {
+            if(source == null)
+                throw new ArgumentNullException(nameof(source));
             if (body == null)
                 throw new ArgumentNullException(nameof(body));
 
