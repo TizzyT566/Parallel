@@ -55,8 +55,10 @@ namespace System.Threading
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         public static void For(int fromInclusive, int toExclusive, Action<int> body, int increment = 1, bool useSpinWait = false)
         {
-            int threads = 0, finishedThreads = 0, spawn = 1;
-            for (int i = 0; i < ProcessorCount && spawn == 1; i++)
+            int threads = 0, finishedThreads = 0;
+            bool spawn = true;
+
+            for (int i = 0; spawn && i < ProcessorCount; i++)
             {
                 if (QueueUserWorkItem(_ =>
                 {
@@ -68,7 +70,7 @@ namespace System.Threading
                     }
                     finally
                     {
-                        spawn = 0;
+                        spawn = false;
                         _ = Increment(ref finishedThreads);
                     }
                 }))
@@ -76,6 +78,7 @@ namespace System.Threading
                     threads++;
                 }
             }
+
             if (useSpinWait)
                 SpinUntil(() => finishedThreads == threads);
             else
@@ -92,8 +95,10 @@ namespace System.Threading
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         public static void For(long fromInclusive, long toExclusive, Action<long> body, long increment = 1, bool useSpinWait = false)
         {
-            int threads = 0, finishedThreads = 0, spawn = 1;
-            for (int i = 0; i < ProcessorCount && spawn == 1; i++)
+            int threads = 0, finishedThreads = 0;
+            bool spawn = true;
+
+            for (int i = 0; spawn && i < ProcessorCount; i++)
             {
                 if (QueueUserWorkItem(_ =>
                 {
@@ -105,7 +110,7 @@ namespace System.Threading
                     }
                     finally
                     {
-                        spawn = 0;
+                        spawn = false;
                         _ = Increment(ref finishedThreads);
                     }
                 }))
@@ -113,6 +118,7 @@ namespace System.Threading
                     threads++;
                 }
             }
+
             if (useSpinWait)
                 SpinUntil(() => finishedThreads == threads);
             else
@@ -129,14 +135,13 @@ namespace System.Threading
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         public static void For(uint fromInclusive, uint toExclusive, Action<uint> body, int increment = 1, bool useSpinWait = false)
         {
-            int threads = 0, finishedThreads = 0, spawn = 1;
-
             static int ToIntShift(uint num) => num > 2147483647 ? (int)(num - 2147483648) : -(int)(2147483648 - num);
             static uint ToUintShift(int num) => num > -1 ? (uint)num + 2147483648 : 2147483648 - (uint)-num;
 
-            int from = ToIntShift(fromInclusive), to = ToIntShift(toExclusive);
+            int threads = 0, finishedThreads = 0, from = ToIntShift(fromInclusive), to = ToIntShift(toExclusive); ;
+            bool spawn = true;
 
-            for (int i = 0; i < ProcessorCount && spawn == 1; i++)
+            for (int i = 0; spawn && i < ProcessorCount; i++)
             {
                 if (QueueUserWorkItem(_ =>
                 {
@@ -148,7 +153,7 @@ namespace System.Threading
                     }
                     finally
                     {
-                        spawn = 0;
+                        spawn = false;
                         _ = Increment(ref finishedThreads);
                     }
                 }))
@@ -156,6 +161,7 @@ namespace System.Threading
                     threads++;
                 }
             }
+
             if (useSpinWait)
                 SpinUntil(() => finishedThreads == threads);
             else
@@ -172,14 +178,14 @@ namespace System.Threading
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         public static void For(ulong fromInclusive, ulong toExclusive, Action<ulong> body, long increment = 1, bool useSpinWait = false)
         {
-            int threads = 0, finishedThreads = 0, spawn = 1;
-
             static long ToLongShift(ulong num) => num > 9223372036854775807 ? (int)(num - 9223372036854775808) : -(long)(9223372036854775808 - num);
             static ulong ToULongShift(long num) => num > -1 ? (uint)num + 9223372036854775808 : 9223372036854775808 - (uint)-num;
 
+            int threads = 0, finishedThreads = 0;
             long from = ToLongShift(fromInclusive), to = ToLongShift(toExclusive);
+            bool spawn = true;
 
-            for (int i = 0; i < ProcessorCount && spawn == 1; i++)
+            for (int i = 0; spawn && i < ProcessorCount; i++)
             {
                 if (QueueUserWorkItem(_ =>
                 {
@@ -191,7 +197,7 @@ namespace System.Threading
                     }
                     finally
                     {
-                        spawn = 0;
+                        spawn = false;
                         _ = Increment(ref finishedThreads);
                     }
                 }))
@@ -199,6 +205,7 @@ namespace System.Threading
                     threads++;
                 }
             }
+
             if (useSpinWait)
                 SpinUntil(() => finishedThreads == threads);
             else
@@ -214,45 +221,47 @@ namespace System.Threading
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         public static void ForEach<T>(IEnumerable<T> source, Action<T> body, bool useSpinWait = false)
         {
-            int threads = 0, finishedThreads = 0, _lock = 0;
-            using (IEnumerator<T> enumerator = source.GetEnumerator())
+            int threads = 0, finishedThreads = 0, @lock = 0;
+            bool spawn = true;
+
+            using IEnumerator<T> enumerator = source.GetEnumerator();
+            for (int i = 0; spawn && i < ProcessorCount; i++)
             {
-                for (int i = 0; i < ProcessorCount; i++)
+                if (QueueUserWorkItem(_ =>
                 {
-                    if (QueueUserWorkItem(_ =>
+                    try
                     {
-                        try
+                        while (true)
                         {
-                            while (true)
+                            while (CompareExchange(ref @lock, 1, 0) == 1) ;
+                            if (enumerator.MoveNext())
                             {
-                                while (CompareExchange(ref _lock, 1, 0) == 1) ;
-                                if (enumerator.MoveNext())
-                                {
-                                    T value = enumerator.Current;
-                                    _ = Exchange(ref _lock, 0);
-                                    body.Invoke(value);
-                                }
-                                else
-                                {
-                                    _ = Exchange(ref _lock, 0);
-                                    break;
-                                }
+                                T value = enumerator.Current;
+                                _ = Exchange(ref @lock, 0);
+                                body.Invoke(value);
+                            }
+                            else
+                            {
+                                _ = Exchange(ref @lock, 0);
+                                break;
                             }
                         }
-                        finally
-                        {
-                            _ = Increment(ref finishedThreads);
-                        }
-                    }))
-                    {
-                        threads++;
                     }
+                    finally
+                    {
+                        spawn = false;
+                        _ = Increment(ref finishedThreads);
+                    }
+                }))
+                {
+                    threads++;
                 }
-                if (useSpinWait)
-                    SpinUntil(() => finishedThreads == threads);
-                else
-                    while (finishedThreads != threads) ;
             }
+
+            if (useSpinWait)
+                SpinUntil(() => finishedThreads == threads);
+            else
+                while (finishedThreads != threads) ;
         }
     }
 }
