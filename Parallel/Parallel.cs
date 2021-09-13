@@ -306,6 +306,7 @@ namespace System.Threading
         /// <param name="condition">The condition to evaluate.</param>
         /// <param name="body">The action to execute.</param>
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
+        /// <remarks>There is an inherent race condition, do not use for accurate code.</remarks>
         public static void While(Func<bool> condition, Action body, bool useSpinWait = false)
         {
             if (condition == null)
