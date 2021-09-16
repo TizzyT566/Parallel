@@ -19,9 +19,9 @@ namespace System.Threading
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         public static void Invoke(Action[] actions, bool useSpinWait = false)
         {
-            int threads = 0, finishedThreads = 0, min = Min(ProcessorCount, actions?.Length ?? 0), idx = -1;
+            int threads = 0, finishedThreads = 0, min = Min(ProcessorCount, actions?.Length ?? 0), idx = -1, spawn =1;
 
-            for (int i = 0; i < min; i++)
+            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < min)
             {
                 if (QueueUserWorkItem(_ =>
                 {
@@ -33,6 +33,7 @@ namespace System.Threading
                     }
                     finally
                     {
+                        _ = Exchange(ref spawn, 0);
                         _ = Increment(ref finishedThreads);
                     }
                 }))
@@ -68,7 +69,7 @@ namespace System.Threading
             int threads = 0, finishedThreads = 0, spawn = 1;
 
             fromInclusive -= increment;
-            for (int i = 0; CompareExchange(ref spawn, 0, 0) == 1 && i < ProcessorCount; i++)
+            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
             {
                 if (QueueUserWorkItem(_ =>
                 {
@@ -116,7 +117,7 @@ namespace System.Threading
             int threads = 0, finishedThreads = 0, spawn = 1;
 
             fromInclusive -= increment;
-            for (int i = 0; CompareExchange(ref spawn, 0, 0) == 1 && i < ProcessorCount; i++)
+            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
             {
                 if (QueueUserWorkItem(_ =>
                 {
@@ -166,7 +167,7 @@ namespace System.Threading
             int lowerBound = ToIntShift(fromInclusive);
             int threads = 0, finishedThreads = 0, from = lowerBound - increment, to = ToIntShift(toExclusive), spawn = 1;
 
-            for (int i = 0; CompareExchange(ref spawn, 0, 0) == 1 && i < ProcessorCount; i++)
+            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
             {
                 if (QueueUserWorkItem(_ =>
                 {
@@ -217,7 +218,7 @@ namespace System.Threading
             int threads = 0, finishedThreads = 0, spawn = 1;
             long from = lowerBound - increment, to = ToLongShift(toExclusive);
 
-            for (int i = 0; CompareExchange(ref spawn, 0, 0) == 1 && i < ProcessorCount; i++)
+            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
             {
                 if (QueueUserWorkItem(_ =>
                 {
@@ -261,7 +262,7 @@ namespace System.Threading
             int threads = 0, finishedThreads = 0, @lock = 0, spawn = 1;
 
             using IEnumerator<T> enumerator = source.GetEnumerator();
-            for (int i = 0; CompareExchange(ref spawn, 0, 0) == 1 && i < ProcessorCount; i++)
+            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
             {
                 if (QueueUserWorkItem(_ =>
                 {
@@ -316,7 +317,7 @@ namespace System.Threading
 
             int threads = 0, finishedThreads = 0, @lock = 0, spawn = 1;
 
-            for (int i = 0; CompareExchange(ref spawn, 0, 0) == 1 && i < ProcessorCount; i++)
+            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
             {
                 if (QueueUserWorkItem(_ =>
                 {
