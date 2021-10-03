@@ -2,7 +2,6 @@
 using static System.Environment;
 using static System.Math;
 using static System.Threading.Interlocked;
-using static System.Threading.SpinWait;
 using static System.Threading.ThreadPool;
 
 namespace System.Threading
@@ -17,35 +16,32 @@ namespace System.Threading
         /// </summary>
         /// <param name="actions">The collection of actions to execute in parallel.</param>
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
-        public static void Invoke(Action[] actions, bool useSpinWait = false)
+        public static void Invoke(Action[] actions)
         {
-            int threads = 0, finishedThreads = 0, min = Min(ProcessorCount, actions?.Length ?? 0), idx = -1, spawn =1;
+            int threads = 1, finishedThreads = 0, min = Min(ProcessorCount, actions?.Length ?? 0), idx = -1, spawn = 1;
 
-            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < min)
+            void work(object obj = default)
             {
-                if (QueueUserWorkItem(_ =>
+                try
                 {
-                    try
-                    {
-                        int crntIdx;
-                        while ((crntIdx = Increment(ref idx)) < actions.Length)
-                            actions[crntIdx]?.Invoke();
-                    }
-                    finally
-                    {
-                        _ = Exchange(ref spawn, 0);
-                        _ = Increment(ref finishedThreads);
-                    }
-                }))
+                    int crntIdx;
+                    while ((crntIdx = Increment(ref idx)) < actions.Length)
+                        actions[crntIdx]?.Invoke();
+                }
+                finally
                 {
-                    threads++;
+                    _ = Exchange(ref spawn, 0);
+                    _ = Increment(ref finishedThreads);
                 }
             }
 
-            if (useSpinWait)
-                SpinUntil(() => CompareExchange(ref finishedThreads, 0, threads) == threads);
-            else
-                while (CompareExchange(ref finishedThreads, 0, threads) != threads) ;
+            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < min)
+                if (QueueUserWorkItem(work))
+                    threads++;
+
+            work();
+
+            while (CompareExchange(ref finishedThreads, 0, threads) != threads) ;
         }
 
         /// <summary>
@@ -56,7 +52,7 @@ namespace System.Threading
         /// <param name="body">The action to execute for each iteration.</param>
         /// <param name="increment">The increment for each iteration.</param>
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
-        public static void For(int fromInclusive, int toExclusive, Action<int> body, int increment = 1, bool useSpinWait = false)
+        public static void For(int fromInclusive, int toExclusive, Action<int> body, int increment = 1)
         {
             if (toExclusive <= fromInclusive)
                 throw new ArgumentOutOfRangeException("toExclusive must be greater than fromInclusive.");
@@ -66,34 +62,32 @@ namespace System.Threading
                 throw new ArgumentNullException(nameof(body));
 
             int lowerBound = fromInclusive;
-            int threads = 0, finishedThreads = 0, spawn = 1;
+            int threads = 1, finishedThreads = 0, spawn = 1;
 
             fromInclusive -= increment;
-            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
+
+            void work(object obj = default)
             {
-                if (QueueUserWorkItem(_ =>
+                try
                 {
-                    try
-                    {
-                        int crntIteration;
-                        while ((crntIteration = Add(ref fromInclusive, increment)) < toExclusive && crntIteration >= lowerBound)
-                            body.Invoke(crntIteration);
-                    }
-                    finally
-                    {
-                        _ = Exchange(ref spawn, 0);
-                        _ = Increment(ref finishedThreads);
-                    }
-                }))
+                    int crntIteration;
+                    while ((crntIteration = Add(ref fromInclusive, increment)) < toExclusive && crntIteration >= lowerBound)
+                        body(crntIteration);
+                }
+                finally
                 {
-                    threads++;
+                    _ = Exchange(ref spawn, 0);
+                    _ = Increment(ref finishedThreads);
                 }
             }
 
-            if (useSpinWait)
-                SpinUntil(() => CompareExchange(ref finishedThreads, 0, threads) == threads);
-            else
-                while (CompareExchange(ref finishedThreads, 0, threads) != threads) ;
+            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
+                if (QueueUserWorkItem(work))
+                    threads++;
+
+            work();
+
+            while (CompareExchange(ref finishedThreads, 0, threads) != threads) ;
         }
 
         /// <summary>
@@ -104,7 +98,7 @@ namespace System.Threading
         /// <param name="body">The action to execute for each iteration.</param>
         /// <param name="increment">The increment for each iteration.</param>
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
-        public static void For(long fromInclusive, long toExclusive, Action<long> body, long increment = 1, bool useSpinWait = false)
+        public static void For(long fromInclusive, long toExclusive, Action<long> body, long increment = 1)
         {
             if (toExclusive <= fromInclusive)
                 throw new ArgumentOutOfRangeException("toExclusive must be greater than fromInclusive.");
@@ -114,34 +108,32 @@ namespace System.Threading
                 throw new ArgumentNullException(nameof(body));
 
             long lowerBound = fromInclusive;
-            int threads = 0, finishedThreads = 0, spawn = 1;
+            int threads = 1, finishedThreads = 0, spawn = 1;
 
             fromInclusive -= increment;
-            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
+
+            void work(object obj = default)
             {
-                if (QueueUserWorkItem(_ =>
+                try
                 {
-                    try
-                    {
-                        long crntIteration;
-                        while ((crntIteration = Add(ref fromInclusive, increment)) < toExclusive && crntIteration >= lowerBound)
-                            body.Invoke(crntIteration);
-                    }
-                    finally
-                    {
-                        _ = Exchange(ref spawn, 0);
-                        _ = Increment(ref finishedThreads);
-                    }
-                }))
+                    long crntIteration;
+                    while ((crntIteration = Add(ref fromInclusive, increment)) < toExclusive && crntIteration >= lowerBound)
+                        body(crntIteration);
+                }
+                finally
                 {
-                    threads++;
+                    _ = Exchange(ref spawn, 0);
+                    _ = Increment(ref finishedThreads);
                 }
             }
 
-            if (useSpinWait)
-                SpinUntil(() => CompareExchange(ref finishedThreads, 0, threads) == threads);
-            else
-                while (CompareExchange(ref finishedThreads, 0, threads) != threads) ;
+            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
+                if (QueueUserWorkItem(work))
+                    threads++;
+
+            work();
+
+            while (CompareExchange(ref finishedThreads, 0, threads) != threads) ;
         }
 
         /// <summary>
@@ -152,7 +144,7 @@ namespace System.Threading
         /// <param name="body">The action to execute for each iteration.</param>
         /// <param name="increment">The increment for each iteration.</param>
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
-        public static void For(uint fromInclusive, uint toExclusive, Action<uint> body, int increment = 1, bool useSpinWait = false)
+        public static void For(uint fromInclusive, uint toExclusive, Action<uint> body, int increment = 1)
         {
             if (toExclusive <= fromInclusive)
                 throw new ArgumentOutOfRangeException("toExclusive must be greater than fromInclusive.");
@@ -165,33 +157,30 @@ namespace System.Threading
             static uint ToUintShift(int num) => num > -1 ? (uint)num + 2147483648 : 2147483648 - (uint)-num;
 
             int lowerBound = ToIntShift(fromInclusive);
-            int threads = 0, finishedThreads = 0, from = lowerBound - increment, to = ToIntShift(toExclusive), spawn = 1;
+            int threads = 1, finishedThreads = 0, from = lowerBound - increment, to = ToIntShift(toExclusive), spawn = 1;
 
-            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
+            void work(object obj = default)
             {
-                if (QueueUserWorkItem(_ =>
+                try
                 {
-                    try
-                    {
-                        int crntIteration;
-                        while ((crntIteration = Add(ref from, increment)) < to && crntIteration >= lowerBound)
-                            body.Invoke(ToUintShift(crntIteration));
-                    }
-                    finally
-                    {
-                        _ = Exchange(ref spawn, 0);
-                        _ = Increment(ref finishedThreads);
-                    }
-                }))
+                    int crntIteration;
+                    while ((crntIteration = Add(ref from, increment)) < to && crntIteration >= lowerBound)
+                        body(ToUintShift(crntIteration));
+                }
+                finally
                 {
-                    threads++;
+                    _ = Exchange(ref spawn, 0);
+                    _ = Increment(ref finishedThreads);
                 }
             }
 
-            if (useSpinWait)
-                SpinUntil(() => CompareExchange(ref finishedThreads, 0, threads) == threads);
-            else
-                while (CompareExchange(ref finishedThreads, 0, threads) != threads) ;
+            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
+                if (QueueUserWorkItem(work))
+                    threads++;
+
+            work();
+
+            while (CompareExchange(ref finishedThreads, 0, threads) != threads) ;
         }
 
         /// <summary>
@@ -202,7 +191,7 @@ namespace System.Threading
         /// <param name="body">The action to execute for each iteration.</param>
         /// <param name="increment">The increment for each iteration.</param>
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
-        public static void For(ulong fromInclusive, ulong toExclusive, Action<ulong> body, long increment = 1, bool useSpinWait = false)
+        public static void For(ulong fromInclusive, ulong toExclusive, Action<ulong> body, long increment = 1)
         {
             if (toExclusive <= fromInclusive)
                 throw new ArgumentOutOfRangeException("toExclusive must be greater than fromInclusive.");
@@ -215,34 +204,31 @@ namespace System.Threading
             static ulong ToULongShift(long num) => num > -1 ? (ulong)num + 9223372036854775808 : 9223372036854775808 - (ulong)-num;
 
             long lowerBound = ToLongShift(fromInclusive);
-            int threads = 0, finishedThreads = 0, spawn = 1;
+            int threads = 1, finishedThreads = 0, spawn = 1;
             long from = lowerBound - increment, to = ToLongShift(toExclusive);
 
-            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
+            void work(object obj = default)
             {
-                if (QueueUserWorkItem(_ =>
+                try
                 {
-                    try
-                    {
-                        long crntIteration;
-                        while ((crntIteration = Add(ref from, increment)) < to && crntIteration >= lowerBound)
-                            body.Invoke(ToULongShift(crntIteration));
-                    }
-                    finally
-                    {
-                        _ = Exchange(ref spawn, 0);
-                        _ = Increment(ref finishedThreads);
-                    }
-                }))
+                    long crntIteration;
+                    while ((crntIteration = Add(ref from, increment)) < to && crntIteration >= lowerBound)
+                        body(ToULongShift(crntIteration));
+                }
+                finally
                 {
-                    threads++;
+                    _ = Exchange(ref spawn, 0);
+                    _ = Increment(ref finishedThreads);
                 }
             }
 
-            if (useSpinWait)
-                SpinUntil(() => CompareExchange(ref finishedThreads, 0, threads) == threads);
-            else
-                while (CompareExchange(ref finishedThreads, 0, threads) != threads) ;
+            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
+                if (QueueUserWorkItem(work))
+                    threads++;
+
+            work();
+
+            while (CompareExchange(ref finishedThreads, 0, threads) != threads) ;
         }
 
         /// <summary>
@@ -252,53 +238,51 @@ namespace System.Threading
         /// <param name="source">The enumberable to loop through.</param>
         /// <param name="body">The action to execute on each element in the enumerable.</param>
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
-        public static void ForEach<T>(IEnumerable<T> source, Action<T> body, bool useSpinWait = false)
+        public static void ForEach<T>(IEnumerable<T> source, Action<T> body)
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
             if (body == null)
                 throw new ArgumentNullException(nameof(body));
 
-            int threads = 0, finishedThreads = 0, @lock = 0, spawn = 1;
+            int threads = 1, finishedThreads = 0, @lock = 0, spawn = 1;
 
             using IEnumerator<T> enumerator = source.GetEnumerator();
-            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
+
+            void work(object obj = default)
             {
-                if (QueueUserWorkItem(_ =>
+                try
                 {
-                    try
+                    while (true)
                     {
-                        while (true)
+                        while (CompareExchange(ref @lock, 1, 0) == 1) ;
+                        if (enumerator.MoveNext())
                         {
-                            while (CompareExchange(ref @lock, 1, 0) == 1) ;
-                            if (enumerator.MoveNext())
-                            {
-                                T value = enumerator.Current;
-                                _ = Exchange(ref @lock, 0);
-                                body.Invoke(value);
-                            }
-                            else
-                            {
-                                _ = Exchange(ref @lock, 0);
-                                break;
-                            }
+                            T value = enumerator.Current;
+                            _ = Exchange(ref @lock, 0);
+                            body(value);
+                        }
+                        else
+                        {
+                            _ = Exchange(ref @lock, 0);
+                            break;
                         }
                     }
-                    finally
-                    {
-                        _ = Exchange(ref spawn, 0);
-                        _ = Increment(ref finishedThreads);
-                    }
-                }))
+                }
+                finally
                 {
-                    threads++;
+                    _ = Exchange(ref spawn, 0);
+                    _ = Increment(ref finishedThreads);
                 }
             }
 
-            if (useSpinWait)
-                SpinUntil(() => CompareExchange(ref finishedThreads, 0, threads) == threads);
-            else
-                while (CompareExchange(ref finishedThreads, 0, threads) != threads) ;
+            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
+                if (QueueUserWorkItem(work))
+                    threads++;
+
+            work();
+
+            while (CompareExchange(ref finishedThreads, 0, threads) != threads) ;
         }
 
         /// <summary>
@@ -308,49 +292,43 @@ namespace System.Threading
         /// <param name="body">The action to execute.</param>
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         /// <remarks>There is an inherent race condition, do not use for accurate code.</remarks>
-        public static void While(Func<bool> condition, Action body, bool useSpinWait = false)
+        public static void While(Func<bool> condition, Action body)
         {
             if (condition == null)
                 throw new ArgumentNullException(nameof(condition));
             if (body == null)
                 throw new ArgumentNullException(nameof(body));
 
-            int threads = 0, finishedThreads = 0, @lock = 0, spawn = 1;
+            int threads = 1, finishedThreads = 0, @lock = 0, spawn = 1;
 
-            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
+            void work(object obj = default)
             {
-                if (QueueUserWorkItem(_ =>
+                try
                 {
-                    try
+                    while (true)
                     {
-                        while (true)
-                        {
-                            while (CompareExchange(ref @lock, 1, 0) == 1) ;
-                            bool result = condition.Invoke();
-                            _ = Exchange(ref @lock, 0);
-                            if (result)
-                            {
-                                body.Invoke();
-                                continue;
-                            }
+                        while (CompareExchange(ref @lock, 1, 0) == 1) ;
+                        bool result = condition();
+                        _ = Exchange(ref @lock, 0);
+                        if (!result)
                             break;
-                        }
+                        body();
                     }
-                    finally
-                    {
-                        _ = Exchange(ref spawn, 0);
-                        _ = Increment(ref finishedThreads);
-                    }
-                }))
+                }
+                finally
                 {
-                    threads++;
+                    _ = Exchange(ref spawn, 0);
+                    _ = Increment(ref finishedThreads);
                 }
             }
 
-            if (useSpinWait)
-                SpinUntil(() => CompareExchange(ref finishedThreads, 0, threads) == threads);
-            else
-                while (CompareExchange(ref finishedThreads, 0, threads) != threads) ;
+            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
+                if (QueueUserWorkItem(work))
+                    threads++;
+
+            work();
+
+            while (CompareExchange(ref finishedThreads, 0, threads) != threads) ;
         }
     }
 }
