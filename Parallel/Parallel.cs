@@ -40,7 +40,7 @@ namespace System.Threading
                 }
             }
 
-            while (threads < min && CompareExchange(ref spawn, 0, 0) == 1)
+            while (threads < min && Volatile.Read(ref spawn) == 1)
                 if (QueueUserWorkItem(work))
                     threads++;
 
@@ -86,7 +86,7 @@ namespace System.Threading
                 }
             }
 
-            while (threads < ProcessorCount && CompareExchange(ref spawn, 0, 0) == 1)
+            while (threads < ProcessorCount && Volatile.Read(ref spawn) == 1)
                 if (QueueUserWorkItem(work))
                     threads++;
 
@@ -132,7 +132,7 @@ namespace System.Threading
                 }
             }
 
-            while (threads < ProcessorCount && CompareExchange(ref spawn, 0, 0) == 1)
+            while (threads < ProcessorCount && Volatile.Read(ref spawn) == 1)
                 if (QueueUserWorkItem(work))
                     threads++;
 
@@ -179,7 +179,7 @@ namespace System.Threading
                 }
             }
 
-            while (threads < ProcessorCount && CompareExchange(ref spawn, 0, 0) == 1)
+            while (threads < ProcessorCount && Volatile.Read(ref spawn) == 1)
                 if (QueueUserWorkItem(work))
                     threads++;
 
@@ -227,7 +227,7 @@ namespace System.Threading
                 }
             }
 
-            while (threads < ProcessorCount && CompareExchange(ref spawn, 0, 0) == 1)
+            while (threads < ProcessorCount && Volatile.Read(ref spawn) == 1)
                 if (QueueUserWorkItem(work))
                     threads++;
 
@@ -281,7 +281,7 @@ namespace System.Threading
                 }
             }
 
-            while (threads < ProcessorCount && CompareExchange(ref spawn, 0, 0) == 1)
+            while (threads < ProcessorCount && Volatile.Read(ref spawn) == 1)
                 if (QueueUserWorkItem(work))
                     threads++;
 
@@ -327,7 +327,7 @@ namespace System.Threading
                 }
             }
 
-            while (threads < ProcessorCount && CompareExchange(ref spawn, 0, 0) == 1)
+            while (threads < ProcessorCount && Volatile.Read(ref spawn) == 1)
                 if (QueueUserWorkItem(work))
                     threads++;
 
