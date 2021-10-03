@@ -46,7 +46,7 @@ namespace System.Threading
 
             work();
 
-            while (finishedThreads != threads) ;
+            while (Volatile.Read(ref finishedThreads) < threads) ;
         }
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace System.Threading
 
             work();
 
-            while (finishedThreads != threads) ;
+            while (Volatile.Read(ref finishedThreads) < threads) ;
         }
 
         /// <summary>
@@ -138,7 +138,7 @@ namespace System.Threading
 
             work();
 
-            while (finishedThreads != threads) ;
+            while (Volatile.Read(ref finishedThreads) < threads) ;
         }
 
         /// <summary>
@@ -185,7 +185,7 @@ namespace System.Threading
 
             work();
 
-            while (finishedThreads != threads) ;
+            while (Volatile.Read(ref finishedThreads) < threads) ;
         }
 
         /// <summary>
@@ -233,7 +233,7 @@ namespace System.Threading
 
             work();
 
-            while (finishedThreads != threads) ;
+            while (Volatile.Read(ref finishedThreads) < threads) ;
         }
 
         /// <summary>
@@ -287,7 +287,7 @@ namespace System.Threading
 
             work();
 
-            while (finishedThreads != threads) ;
+            while (Volatile.Read(ref finishedThreads) < threads) ;
         }
 
         /// <summary>
@@ -333,7 +333,7 @@ namespace System.Threading
 
             work();
 
-            while (finishedThreads != threads) ;
+            while (Volatile.Read(ref finishedThreads) < threads) ;
         }
     }
 }
