@@ -18,7 +18,12 @@ namespace System.Threading
         /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         public static void Invoke(Action[] actions)
         {
-            int threads = 1, finishedThreads = 0, min = Min(ProcessorCount, actions?.Length ?? 0), idx = -1, spawn = 1;
+            if (actions == null)
+                throw new ArgumentNullException(nameof(actions));
+            if (actions.Length == 0)
+                throw new ArgumentException($"{nameof(actions)} cannot be empty.");
+
+            int threads = 1, finishedThreads = 0, min = Min(ProcessorCount, actions.Length), idx = -1, spawn = 1;
 
             void work(object obj = default)
             {
@@ -35,13 +40,13 @@ namespace System.Threading
                 }
             }
 
-            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < min)
+            while (threads < min && CompareExchange(ref spawn, 0, 0) == 1)
                 if (QueueUserWorkItem(work))
                     threads++;
 
             work();
 
-            while (CompareExchange(ref finishedThreads, 0, threads) != threads) ;
+            while (finishedThreads != threads) ;
         }
 
         /// <summary>
@@ -81,13 +86,13 @@ namespace System.Threading
                 }
             }
 
-            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
+            while (threads < ProcessorCount && CompareExchange(ref spawn, 0, 0) == 1)
                 if (QueueUserWorkItem(work))
                     threads++;
 
             work();
 
-            while (CompareExchange(ref finishedThreads, 0, threads) != threads) ;
+            while (finishedThreads != threads) ;
         }
 
         /// <summary>
@@ -127,13 +132,13 @@ namespace System.Threading
                 }
             }
 
-            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
+            while (threads < ProcessorCount && CompareExchange(ref spawn, 0, 0) == 1)
                 if (QueueUserWorkItem(work))
                     threads++;
 
             work();
 
-            while (CompareExchange(ref finishedThreads, 0, threads) != threads) ;
+            while (finishedThreads != threads) ;
         }
 
         /// <summary>
@@ -174,13 +179,13 @@ namespace System.Threading
                 }
             }
 
-            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
+            while (threads < ProcessorCount && CompareExchange(ref spawn, 0, 0) == 1)
                 if (QueueUserWorkItem(work))
                     threads++;
 
             work();
 
-            while (CompareExchange(ref finishedThreads, 0, threads) != threads) ;
+            while (finishedThreads != threads) ;
         }
 
         /// <summary>
@@ -222,13 +227,13 @@ namespace System.Threading
                 }
             }
 
-            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
+            while (threads < ProcessorCount && CompareExchange(ref spawn, 0, 0) == 1)
                 if (QueueUserWorkItem(work))
                     threads++;
 
             work();
 
-            while (CompareExchange(ref finishedThreads, 0, threads) != threads) ;
+            while (finishedThreads != threads) ;
         }
 
         /// <summary>
@@ -276,13 +281,13 @@ namespace System.Threading
                 }
             }
 
-            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
+            while (threads < ProcessorCount && CompareExchange(ref spawn, 0, 0) == 1)
                 if (QueueUserWorkItem(work))
                     threads++;
 
             work();
 
-            while (CompareExchange(ref finishedThreads, 0, threads) != threads) ;
+            while (finishedThreads != threads) ;
         }
 
         /// <summary>
@@ -322,13 +327,13 @@ namespace System.Threading
                 }
             }
 
-            while (CompareExchange(ref spawn, 0, 0) == 1 && threads < ProcessorCount)
+            while (threads < ProcessorCount && CompareExchange(ref spawn, 0, 0) == 1)
                 if (QueueUserWorkItem(work))
                     threads++;
 
             work();
 
-            while (CompareExchange(ref finishedThreads, 0, threads) != threads) ;
+            while (finishedThreads != threads) ;
         }
     }
 }
