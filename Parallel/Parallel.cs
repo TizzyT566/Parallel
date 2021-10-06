@@ -60,7 +60,7 @@ namespace System.Threading
         public static void For(int fromInclusive, int toExclusive, Action<int> body, int increment = 1)
         {
             if (toExclusive <= fromInclusive)
-                throw new ArgumentOutOfRangeException("toExclusive must be greater than fromInclusive.");
+                throw new ArgumentOutOfRangeException(nameof(toExclusive), $"{nameof(toExclusive)} must be greater than {nameof(fromInclusive)}.");
             if (increment < 1)
                 throw new ArgumentOutOfRangeException(nameof(increment), $"{nameof(increment)} must be greater than 0.");
             if (body == null)
@@ -106,7 +106,7 @@ namespace System.Threading
         public static void For(long fromInclusive, long toExclusive, Action<long> body, long increment = 1)
         {
             if (toExclusive <= fromInclusive)
-                throw new ArgumentOutOfRangeException("toExclusive must be greater than fromInclusive.");
+                throw new ArgumentOutOfRangeException(nameof(toExclusive), $"{nameof(toExclusive)} must be greater than {nameof(fromInclusive)}.");
             if (increment < 1)
                 throw new ArgumentOutOfRangeException(nameof(increment), $"{nameof(increment)} must be greater than 0.");
             if (body == null)
@@ -152,7 +152,7 @@ namespace System.Threading
         public static void For(uint fromInclusive, uint toExclusive, Action<uint> body, int increment = 1)
         {
             if (toExclusive <= fromInclusive)
-                throw new ArgumentOutOfRangeException("toExclusive must be greater than fromInclusive.");
+                throw new ArgumentOutOfRangeException(nameof(toExclusive), $"{nameof(toExclusive)} must be greater than {nameof(fromInclusive)}.");
             if (increment < 1)
                 throw new ArgumentOutOfRangeException(nameof(increment), $"{nameof(increment)} must be greater than 0.");
             if (body == null)
@@ -199,7 +199,7 @@ namespace System.Threading
         public static void For(ulong fromInclusive, ulong toExclusive, Action<ulong> body, long increment = 1)
         {
             if (toExclusive <= fromInclusive)
-                throw new ArgumentOutOfRangeException("toExclusive must be greater than fromInclusive.");
+                throw new ArgumentOutOfRangeException(nameof(toExclusive), $"{nameof(toExclusive)} must be greater than {nameof(fromInclusive)}.");
             if (increment < 1)
                 throw new ArgumentOutOfRangeException(nameof(increment), $"{nameof(increment)} must be greater than 0.");
             if (body == null)
