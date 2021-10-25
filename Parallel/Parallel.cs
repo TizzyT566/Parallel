@@ -260,7 +260,7 @@ namespace System.Threading
                 {
                     while (true)
                     {
-                        while (CompareExchange(ref @lock, 1, 0) == 1) ;
+                        while (Exchange(ref @lock, 1) == 1) ;
                         if (enumerator.MoveNext())
                         {
                             T value = enumerator.Current;
@@ -312,7 +312,7 @@ namespace System.Threading
                 {
                     while (true)
                     {
-                        while (CompareExchange(ref @lock, 1, 0) == 1) ;
+                        while (Exchange(ref @lock, 1) == 1) ;
                         bool result = condition();
                         _ = Exchange(ref @lock, 0);
                         if (!result)
