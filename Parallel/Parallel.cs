@@ -15,7 +15,6 @@ namespace System.Threading
         /// A lightweight implementation parallel invoke not based on tasks.
         /// </summary>
         /// <param name="actions">The collection of actions to execute in parallel.</param>
-        /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         public static void Invoke(Action[] actions)
         {
             if (actions == null)
@@ -56,7 +55,6 @@ namespace System.Threading
         /// <param name="toExclusive">The exclusive ending index.</param>
         /// <param name="body">The action to execute for each iteration.</param>
         /// <param name="increment">The increment for each iteration.</param>
-        /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         public static void For(int fromInclusive, int toExclusive, Action<int> body, int increment = 1)
         {
             if (toExclusive <= fromInclusive)
@@ -102,7 +100,6 @@ namespace System.Threading
         /// <param name="toExclusive">The exclusive ending index.</param>
         /// <param name="body">The action to execute for each iteration.</param>
         /// <param name="increment">The increment for each iteration.</param>
-        /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         public static void For(long fromInclusive, long toExclusive, Action<long> body, long increment = 1)
         {
             if (toExclusive <= fromInclusive)
@@ -148,7 +145,6 @@ namespace System.Threading
         /// <param name="toExclusive">The exclusive ending index.</param>
         /// <param name="body">The action to execute for each iteration.</param>
         /// <param name="increment">The increment for each iteration.</param>
-        /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         public static void For(uint fromInclusive, uint toExclusive, Action<uint> body, int increment = 1)
         {
             if (toExclusive <= fromInclusive)
@@ -195,7 +191,6 @@ namespace System.Threading
         /// <param name="toExclusive">The exclusive ending index.</param>
         /// <param name="body">The action to execute for each iteration.</param>
         /// <param name="increment">The increment for each iteration.</param>
-        /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         public static void For(ulong fromInclusive, ulong toExclusive, Action<ulong> body, long increment = 1)
         {
             if (toExclusive <= fromInclusive)
@@ -242,7 +237,6 @@ namespace System.Threading
         /// <typeparam name="T">The type contained in the enumerable.</typeparam>
         /// <param name="source">The enumberable to loop through.</param>
         /// <param name="body">The action to execute on each element in the enumerable.</param>
-        /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         public static void ForEach<T>(IEnumerable<T> source, Action<T> body)
         {
             if (source == null)
@@ -295,7 +289,6 @@ namespace System.Threading
         /// </summary>
         /// <param name="condition">The condition to evaluate.</param>
         /// <param name="body">The action to execute.</param>
-        /// <param name="useSpinWait">Prefer to use a spin wait mechanism instead of polling.</param>
         /// <remarks>There is an inherent race condition, do not use for accurate code.</remarks>
         public static void While(Func<bool> condition, Action body)
         {
