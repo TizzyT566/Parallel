@@ -148,9 +148,9 @@ namespace System.Threading
         public static void For(uint fromInclusive, uint toExclusive, Action<uint> body, int increment = 1)
         {
             if (toExclusive <= fromInclusive)
-                throw new ArgumentOutOfRangeException(nameof(toExclusive), $"{nameof(toExclusive)} must be greater than {nameof(fromInclusive)}.");
+                throw new ArgumentOutOfRangeException(nameof(toExclusive), $"Must be greater than {nameof(fromInclusive)}.");
             if (increment < 1)
-                throw new ArgumentOutOfRangeException(nameof(increment), $"{nameof(increment)} must be greater than 0.");
+                throw new ArgumentOutOfRangeException(nameof(increment), $"Must be greater than 0.");
             if (body == null)
                 throw new ArgumentNullException(nameof(body));
 
@@ -194,9 +194,9 @@ namespace System.Threading
         public static void For(ulong fromInclusive, ulong toExclusive, Action<ulong> body, long increment = 1)
         {
             if (toExclusive <= fromInclusive)
-                throw new ArgumentOutOfRangeException(nameof(toExclusive), $"{nameof(toExclusive)} must be greater than {nameof(fromInclusive)}.");
+                throw new ArgumentOutOfRangeException(nameof(toExclusive), $"Must be greater than {nameof(fromInclusive)}.");
             if (increment < 1)
-                throw new ArgumentOutOfRangeException(nameof(increment), $"{nameof(increment)} must be greater than 0.");
+                throw new ArgumentOutOfRangeException(nameof(increment), $"Must be greater than 0.");
             if (body == null)
                 throw new ArgumentNullException(nameof(body));
 
