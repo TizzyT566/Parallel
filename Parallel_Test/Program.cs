@@ -71,15 +71,15 @@ void someAction3(uint i)
 {
     Console.WriteLine(i);
 }
-For(0, 10, someAction3);
+For(uint.MaxValue - 10, uint.MaxValue, someAction3);
 
 // Another example
 
-For(0, 10, i => Console.WriteLine(i));
+For(uint.MaxValue - 10, uint.MaxValue, i => Console.WriteLine(i));
 
 // Another example
 
-For(0, 10, i => Console.WriteLine(i), 1); // Optional increment argument
+For(uint.MaxValue - 10, uint.MaxValue, i => Console.WriteLine(i), 1); // Optional increment argument
 // Parallel For (uint)
 
 
