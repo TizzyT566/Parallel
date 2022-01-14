@@ -15,7 +15,7 @@ namespace System.Threading
         /// A lightweight implementation parallel invoke not based on tasks.
         /// </summary>
         /// <param name="actions">The collection of actions to execute in parallel.</param>
-        public static void Invoke(Action[] actions)
+        public static void Invoke(params Action[] actions)
         {
             if (actions == null)
                 throw new ArgumentNullException(nameof(actions));
@@ -53,16 +53,16 @@ namespace System.Threading
         /// </summary>
         /// <param name="fromInclusive">The starting index.</param>
         /// <param name="toExclusive">The exclusive ending index.</param>
-        /// <param name="body">The action to execute for each iteration.</param>
+        /// <param name="action">The action to execute for each iteration.</param>
         /// <param name="increment">The increment for each iteration.</param>
-        public static void For(int fromInclusive, int toExclusive, Action<int> body, int increment = 1)
+        public static void For(int fromInclusive, int toExclusive, Action<int> action, int increment = 1)
         {
             if (toExclusive <= fromInclusive)
                 throw new ArgumentOutOfRangeException(nameof(toExclusive), $"{nameof(toExclusive)} must be greater than {nameof(fromInclusive)}.");
             if (increment < 1)
                 throw new ArgumentOutOfRangeException(nameof(increment), $"{nameof(increment)} must be greater than 0.");
-            if (body == null)
-                throw new ArgumentNullException(nameof(body));
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
 
             int lowerBound = fromInclusive;
             int threads = 1, finishedThreads = 0, spawn = 1;
@@ -75,7 +75,7 @@ namespace System.Threading
                 {
                     int crntIteration;
                     while ((crntIteration = Add(ref fromInclusive, increment)) < toExclusive && crntIteration >= lowerBound)
-                        body(crntIteration);
+                        action(crntIteration);
                 }
                 finally
                 {
@@ -98,16 +98,16 @@ namespace System.Threading
         /// </summary>
         /// <param name="fromInclusive">The starting index.</param>
         /// <param name="toExclusive">The exclusive ending index.</param>
-        /// <param name="body">The action to execute for each iteration.</param>
+        /// <param name="action">The action to execute for each iteration.</param>
         /// <param name="increment">The increment for each iteration.</param>
-        public static void For(long fromInclusive, long toExclusive, Action<long> body, long increment = 1)
+        public static void For(long fromInclusive, long toExclusive, Action<long> action, long increment = 1)
         {
             if (toExclusive <= fromInclusive)
                 throw new ArgumentOutOfRangeException(nameof(toExclusive), $"{nameof(toExclusive)} must be greater than {nameof(fromInclusive)}.");
             if (increment < 1)
                 throw new ArgumentOutOfRangeException(nameof(increment), $"{nameof(increment)} must be greater than 0.");
-            if (body == null)
-                throw new ArgumentNullException(nameof(body));
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
 
             long lowerBound = fromInclusive;
             int threads = 1, finishedThreads = 0, spawn = 1;
@@ -120,7 +120,7 @@ namespace System.Threading
                 {
                     long crntIteration;
                     while ((crntIteration = Add(ref fromInclusive, increment)) < toExclusive && crntIteration >= lowerBound)
-                        body(crntIteration);
+                        action(crntIteration);
                 }
                 finally
                 {
@@ -143,16 +143,16 @@ namespace System.Threading
         /// </summary>
         /// <param name="fromInclusive">The starting index.</param>
         /// <param name="toExclusive">The exclusive ending index.</param>
-        /// <param name="body">The action to execute for each iteration.</param>
+        /// <param name="action">The action to execute for each iteration.</param>
         /// <param name="increment">The increment for each iteration.</param>
-        public static void For(uint fromInclusive, uint toExclusive, Action<uint> body, int increment = 1)
+        public static void For(uint fromInclusive, uint toExclusive, Action<uint> action, int increment = 1)
         {
             if (toExclusive <= fromInclusive)
                 throw new ArgumentOutOfRangeException(nameof(toExclusive), $"Must be greater than {nameof(fromInclusive)}.");
             if (increment < 1)
                 throw new ArgumentOutOfRangeException(nameof(increment), $"Must be greater than 0.");
-            if (body == null)
-                throw new ArgumentNullException(nameof(body));
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
 
             static int ToIntShift(uint num) => num > 2147483647 ? (int)(num - 2147483648) : -(int)(2147483648 - num);
             static uint ToUintShift(int num) => num > -1 ? (uint)num + 2147483648 : 2147483648 - (uint)-num;
@@ -166,7 +166,7 @@ namespace System.Threading
                 {
                     int crntIteration;
                     while ((crntIteration = Add(ref from, increment)) < to && crntIteration >= lowerBound)
-                        body(ToUintShift(crntIteration));
+                        action(ToUintShift(crntIteration));
                 }
                 finally
                 {
@@ -189,16 +189,16 @@ namespace System.Threading
         /// </summary>
         /// <param name="fromInclusive">The starting index.</param>
         /// <param name="toExclusive">The exclusive ending index.</param>
-        /// <param name="body">The action to execute for each iteration.</param>
+        /// <param name="action">The action to execute for each iteration.</param>
         /// <param name="increment">The increment for each iteration.</param>
-        public static void For(ulong fromInclusive, ulong toExclusive, Action<ulong> body, long increment = 1)
+        public static void For(ulong fromInclusive, ulong toExclusive, Action<ulong> action, long increment = 1)
         {
             if (toExclusive <= fromInclusive)
                 throw new ArgumentOutOfRangeException(nameof(toExclusive), $"Must be greater than {nameof(fromInclusive)}.");
             if (increment < 1)
                 throw new ArgumentOutOfRangeException(nameof(increment), $"Must be greater than 0.");
-            if (body == null)
-                throw new ArgumentNullException(nameof(body));
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
 
             static long ToLongShift(ulong num) => num > 9223372036854775807 ? (long)(num - 9223372036854775808) : -(long)(9223372036854775808 - num);
             static ulong ToULongShift(long num) => num > -1 ? (ulong)num + 9223372036854775808 : 9223372036854775808 - (ulong)-num;
@@ -213,7 +213,7 @@ namespace System.Threading
                 {
                     long crntIteration;
                     while ((crntIteration = Add(ref from, increment)) < to && crntIteration >= lowerBound)
-                        body(ToULongShift(crntIteration));
+                        action(ToULongShift(crntIteration));
                 }
                 finally
                 {
@@ -285,17 +285,17 @@ namespace System.Threading
         }
 
         /// <summary>
-        /// Executes an action as long as a condition is true.
+        /// A lightweight implementation parallel while loop not based on tasks.
         /// </summary>
         /// <param name="condition">The condition to evaluate.</param>
-        /// <param name="body">The action to execute.</param>
-        /// <remarks>There is an inherent race condition, do not use for accurate code.</remarks>
-        public static void While(Func<bool> condition, Action body)
+        /// <param name="action">The action to execute.</param>
+        /// <remarks>There is a potential for a race condition, do not use for accurate code.</remarks>
+        public static void While(Func<bool> condition, Action action)
         {
             if (condition == null)
                 throw new ArgumentNullException(nameof(condition));
-            if (body == null)
-                throw new ArgumentNullException(nameof(body));
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
 
             int threads = 1, finishedThreads = 0, @lock = 0, spawn = 1;
 
@@ -310,7 +310,7 @@ namespace System.Threading
                         _ = Exchange(ref @lock, 0);
                         if (!result)
                             break;
-                        body();
+                        action();
                     }
                 }
                 finally
